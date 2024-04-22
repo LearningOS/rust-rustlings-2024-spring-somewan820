@@ -17,7 +17,7 @@
 | error_handling         | §9                  | over
 | generics               | §10                 | over
 | traits                 | §10.2               | over
-| tests                  | §11.1               |
+| tests                  | §11.1               | half
 | lifetimes              | §10.3               |
 | iterators              | §13.2-4             |
 | threads                | §16.1-3             |
