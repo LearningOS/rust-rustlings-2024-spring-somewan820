@@ -20,7 +20,7 @@
 | tests                  | §11.1               | half
 | lifetimes              | §10.3               | over
 | iterators              | §13.2-4             | over
-| threads                | §16.1-3             |
+| threads                | §16.1-3             | over
 | smart_pointers         | §15, §16.3          |
 | macros                 | §19.6               |
 | clippy                 | §21.4               |
