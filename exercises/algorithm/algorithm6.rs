@@ -1,37 +1,93 @@
 /*
-	dfs
-	This problem requires you to implement a basic DFS traversal
+	binary_search tree
+	This problem requires you to implement a basic interface for a binary tree
 */
 
-// I AM NOT DONE
-use std::collections::HashSet;
+//
+use std::cmp::Ordering;
+use std::fmt::Debug;
 
-struct Graph {
-    adj: Vec<Vec<usize>>, 
+#[derive(Debug)]
+struct TreeNode<T>
+where
+    T: Ord,
+{
+    value: T,
+    left: Option<Box<TreeNode<T>>>,
+    right: Option<Box<TreeNode<T>>>,
 }
 
-impl Graph {
-    fn new(n: usize) -> Self {
-        Graph {
-            adj: vec![vec![]; n],
+#[derive(Debug)]
+struct BinarySearchTree<T>
+where
+    T: Ord,
+{
+    root: Option<Box<TreeNode<T>>>,
+}
+
+impl<T> TreeNode<T>
+where
+    T: Ord,
+{
+    fn new(value: T) -> Self {
+        TreeNode {
+            value,
+            left: None,
+            right: None,
         }
     }
 
-    fn add_edge(&mut self, src: usize, dest: usize) {
-        self.adj[src].push(dest);
-        self.adj[dest].push(src); 
+    fn insert(&mut self, value: T) {
+        match value.cmp(&self.value) {
+            Ordering::Less => {
+                if let Some(left) = &mut self.left {
+                    left.insert(value);
+                } else {
+                    self.left = Some(Box::new(TreeNode::new(value)));
+                }
+            }
+            Ordering::Greater => {
+                if let Some(right) = &mut self.right {
+                    right.insert(value);
+                } else {
+                    self.right = Some(Box::new(TreeNode::new(value)));
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+impl<T> BinarySearchTree<T>
+where
+    T: Ord,
+{
+    fn new() -> Self {
+        BinarySearchTree { root: None }
     }
 
-    fn dfs_util(&self, v: usize, visited: &mut HashSet<usize>, visit_order: &mut Vec<usize>) {
-        //TODO
+    fn insert(&mut self, value: T) {
+        match &mut self.root {
+            Some(root) => root.insert(value),
+            None => self.root = Some(Box::new(TreeNode::new(value))),
+        }
     }
 
-    // Perform a depth-first search on the graph, return the order of visited nodes
-    fn dfs(&self, start: usize) -> Vec<usize> {
-        let mut visited = HashSet::new();
-        let mut visit_order = Vec::new(); 
-        self.dfs_util(start, &mut visited, &mut visit_order);
-        visit_order
+    fn search(&self, value: T) -> bool {
+        self.root.as_ref().map_or(false, |root| root.search(value))
+    }
+}
+
+impl<T> TreeNode<T>
+where
+    T: Ord,
+{
+    fn search(&self, value: T) -> bool {
+        match value.cmp(&self.value) {
+            Ordering::Less => self.left.as_ref().map_or(false, |left| left.search(value)),
+            Ordering::Greater => self.right.as_ref().map_or(false, |right| right.search(value)),
+            _ => true,
+        }
     }
 }
 
@@ -40,39 +96,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_dfs_simple() {
-        let mut graph = Graph::new(3);
-        graph.add_edge(0, 1);
-        graph.add_edge(1, 2);
+    fn test_insert_and_search() {
+        let mut bst = BinarySearchTree::new();
 
-        let visit_order = graph.dfs(0);
-        assert_eq!(visit_order, vec![0, 1, 2]);
+        assert_eq!(bst.search(1), false);
+
+        bst.insert(5);
+        bst.insert(3);
+        bst.insert(7);
+        bst.insert(2);
+        bst.insert(4);
+
+        assert_eq!(bst.search(5), true);
+        assert_eq!(bst.search(3), true);
+        assert_eq!(bst.search(7), true);
+        assert_eq!(bst.search(2), true);
+        assert_eq!(bst.search(4), true);
+
+        assert_eq!(bst.search(1), false);
+        assert_eq!(bst.search(6), false);
     }
 
     #[test]
-    fn test_dfs_with_cycle() {
-        let mut graph = Graph::new(4);
-        graph.add_edge(0, 1);
-        graph.add_edge(0, 2);
-        graph.add_edge(1, 2);
-        graph.add_edge(2, 3);
-        graph.add_edge(3, 3); 
+    fn test_insert_duplicate() {
+        let mut bst = BinarySearchTree::new();
 
-        let visit_order = graph.dfs(0);
-        assert_eq!(visit_order, vec![0, 1, 2, 3]);
-    }
+        bst.insert(1);
+        bst.insert(1);
 
-    #[test]
-    fn test_dfs_disconnected_graph() {
-        let mut graph = Graph::new(5);
-        graph.add_edge(0, 1);
-        graph.add_edge(0, 2);
-        graph.add_edge(3, 4); 
+        assert_eq!(bst.search(1), true);
 
-        let visit_order = graph.dfs(0);
-        assert_eq!(visit_order, vec![0, 1, 2]); 
-        let visit_order_disconnected = graph.dfs(3);
-        assert_eq!(visit_order_disconnected, vec![3, 4]); 
+        match bst.root {
+            Some(ref node) => {
+                assert!(node.left.is_none());
+                assert!(node.right.is_none());
+            }
+            None => panic!("Root should not be None after insertion"),
+        }
     }
 }
-
